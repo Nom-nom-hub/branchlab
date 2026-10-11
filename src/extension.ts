@@ -156,6 +156,10 @@ function scheduleRefresh(): void {
 async function refreshAll(): Promise<void> {
   tree.refresh();
   if (panel.visible) {
+    const exp = currentExperiment();
+    if (exp) {
+      panel.setPorts(exp.variants.map((v) => v.port).filter((p): p is number => p !== null));
+    }
     panel.post(await buildPayload());
   }
 }

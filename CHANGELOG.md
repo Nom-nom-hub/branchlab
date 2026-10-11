@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.3 — 2026-10-11
+
+- **Preview transport fix.** The comparison panel now routes its
+  loopback preview requests through VS Code's webview port mapping
+  (each allocated variant port is mapped as servers start), instead of
+  relying on a bare cross-context iframe navigation — the shape
+  Chromium's Local Network Access checks block
+  (ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS). The Next.js dev server
+  was verified innocent: on 14.2.35 it serves CSS/JS with 200 under
+  every Origin header.
+- Dropped the iframe sandbox attribute (with scripts + same-origin
+  allowed it restrained nothing; one less variable in the embed path).
+
+
 ## 0.1.2 — 2026-10-11
 
 - Preflight tells the truth about discovery failures: Git missing from

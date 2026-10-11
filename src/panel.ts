@@ -38,6 +38,7 @@ export interface PanelPayload {
 
 export class ComparisonPanel {
   private panel: vscode.WebviewPanel | null = null;
+  private mappedPorts = '';
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -57,8 +58,6 @@ export class ComparisonPanel {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [this.extensionUri],
-        // Dev-server previews load from loopback origins inside iframes;
-        // the webview itself only runs the bundled panel script below.
         portMapping: [],
       },
     );
@@ -78,6 +77,26 @@ export class ComparisonPanel {
     if (this.panel) {
       void this.panel.webview.postMessage({ type: 'state', payload });
     }
+  }
+
+  /** Route the webview's loopback requests through VS Code's own port
+   *  forwarding (webview portMapping). A bare iframe to 127.0.0.1 from a
+   *  webview page runs into Chromium's Local Network Access checks —
+   *  the mapped route is the sanctioned path for embedded dev servers. */
+  setPorts(ports: number[]): void {
+    if (!this.panel) {
+      return;
+    }
+    const key = [...new Set(ports)].sort((a, b) => a - b).join(',');
+    if (key === this.mappedPorts) {
+      return;
+    }
+    this.mappedPorts = key;
+    this.panel.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [this.extensionUri],
+      portMapping: [...new Set(ports)].map((p) => ({ webviewPort: p, extensionHostPort: p })),
+    };
   }
 
   get visible(): boolean {
@@ -176,7 +195,7 @@ export class ComparisonPanel {
     const previewUrl = v.url ? v.url.replace(/\\/$/, '') + route : '';
     let preview;
     if (v.serverState === 'running' && v.url) {
-      preview = '<div class="preview"><div class="frame" style="max-width:' + VIEWPORTS[viewport] + '"><iframe title="Preview of ' + esc(v.label) + '" src="' + esc(previewUrl) + '" sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"></iframe></div></div>'
+      preview = '<div class="preview"><div class="frame" style="max-width:' + VIEWPORTS[viewport] + '"><iframe title="Preview of ' + esc(v.label) + '" src="' + esc(previewUrl) + '"></iframe></div></div>'
         + '<div class="note">Isolated preview — sign-ins, cookies, and storage are per-variant and may differ. If the app refuses to embed, use Open in Browser.</div>';
     } else {
       preview = '<div class="preview"><div class="empty">' + (v.setupState !== 'installed' ? 'Install dependencies, then start the server to see this variant live.' : 'Server is stopped. Start it to see this variant live.') + '</div></div>';
