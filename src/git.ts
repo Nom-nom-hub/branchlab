@@ -55,9 +55,30 @@ async function gitPath(repo: string, name: string): Promise<string | null> {
  *  the complete list with remedies, not one failure at a time. */
 export async function preflight(dir: string): Promise<{ info: RepoInfo | null; problems: PreflightProblem[] }> {
   const problems: PreflightProblem[] = [];
-  const top = await execGit(dir, ['rev-parse', '--show-toplevel']).catch(() => null);
+  let top: GitResult | null = null;
+  try {
+    top = await execGit(dir, ['rev-parse', '--show-toplevel']);
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    return {
+      info: null,
+      problems: [{
+        code: 'git-missing',
+        message: code === 'ENOENT'
+          ? 'Git was not found on this machine\'s PATH. Install Git for Windows (git-scm.com) and restart VS Code, then try again.'
+          : `Git could not be started: ${err instanceof Error ? err.message : String(err)}`,
+      }],
+    };
+  }
   if (!top || top.code !== 0) {
-    return { info: null, problems: [{ code: 'not-a-repo', message: 'This folder is not inside a Git repository. Open the repository root and try again.' }] };
+    const detail = top?.stderr.trim().split('\n')[0] ?? '';
+    return {
+      info: null,
+      problems: [{
+        code: 'not-a-repo',
+        message: `This folder is not inside a Git repository. Open the repository root (the folder containing .git) and try again.${detail ? ` Git said: ${detail}` : ''}`,
+      }],
+    };
   }
   const root = top.stdout.trim();
 

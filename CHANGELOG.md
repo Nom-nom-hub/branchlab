@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2 — 2026-10-11
+
+- Preflight tells the truth about discovery failures: Git missing from
+  PATH gets its own message (install Git, restart VS Code), and any
+  other refusal (e.g. dubious-ownership) now quotes Git's own first
+  error line instead of a generic "not a repository".
+
+
 ## 0.1.1 — 2026-10-11
 
 - tsconfig now declares `"types": ["node"]` explicitly, so a fresh
