@@ -488,6 +488,23 @@ async function applyWinnerFlow(exp: ExperimentRecord, variant: VariantRecord): P
 /* --------------------------------- delete --------------------------------- */
 
 async function deleteFlow(exp: ExperimentRecord): Promise<void> {
+  try {
+    await deleteFlowInner(exp);
+  } catch (err) {
+    // Never let a raw OS error surface as a VS Code "system error".
+    void vscode.window.showErrorMessage(`BranchLab: delete failed — ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
+function reportLeftovers(leftovers: string[] | undefined): void {
+  if (leftovers && leftovers.length > 0) {
+    void vscode.window.showWarningMessage(
+      `BranchLab: the experiment was deleted, but this folder could not be removed — something still holds it open (a variant window, a terminal inside it, or a server still shutting down): ${leftovers[0]}. Close anything using it, then delete the folder manually.`,
+    );
+  }
+}
+
+async function deleteFlowInner(exp: ExperimentRecord): Promise<void> {
   const outcome = await deleteExperiment(store, exp, {
     discardConfirmed: false,
     stopServer: (id) => supervisor.stopServer(id).then(() => undefined),
@@ -497,6 +514,7 @@ async function deleteFlow(exp: ExperimentRecord): Promise<void> {
       selectedExperimentId = null;
     }
     syncWatchers();
+    reportLeftovers(outcome.leftovers);
     await refreshAll();
     return;
   }
@@ -516,6 +534,7 @@ async function deleteFlow(exp: ExperimentRecord): Promise<void> {
         selectedExperimentId = null;
       }
       syncWatchers();
+      reportLeftovers(done.leftovers);
       await refreshAll();
     } else {
       void vscode.window.showErrorMessage(`BranchLab: delete stopped — ${(done.blockedBy ?? []).join(' ')}`);

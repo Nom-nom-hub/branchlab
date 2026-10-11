@@ -124,7 +124,7 @@ export async function cleanupPartialCreate(store: Store, experimentId: string): 
     }
     await removeWorktree(experiment.repoPath, variant.worktreePath).catch(() => undefined);
     await deleteBranch(experiment.repoPath, variant.branch).catch(() => undefined);
-    fs.rmSync(variant.worktreePath, { recursive: true, force: true });
+    await removeTree(variant.worktreePath);
   }
   store.removeExperiment(experimentId);
 }
@@ -171,6 +171,24 @@ export async function variantHasWork(experiment: ExperimentRecord, variant: Vari
 export interface DeleteOutcome {
   ok: boolean;
   blockedBy?: string[];
+  /** Directories Git deregistered but the OS would not delete (locked
+   *  files — an editor window, a terminal, a server still releasing
+   *  handles). The delete itself succeeded; these are named so the user
+   *  can clear them by hand once nothing holds them open. */
+  leftovers?: string[];
+}
+
+/** Remove a directory tree, tolerating the way Windows releases file
+ *  handles asynchronously (a just-stopped dev server, editor watchers):
+ *  retry with backoff, and report failure as a boolean instead of
+ *  throwing the raw OS error through the caller. */
+export async function removeTree(dir: string): Promise<boolean> {
+  try {
+    await fs.promises.rm(dir, { recursive: true, force: true, maxRetries: 8, retryDelay: 300 });
+  } catch {
+    /* the existence check below is the verdict */
+  }
+  return !fs.existsSync(dir);
 }
 
 export async function deleteExperiment(
@@ -189,8 +207,12 @@ export async function deleteExperiment(
       return { ok: false, blockedBy: holders };
     }
   }
+  const leftovers: string[] = [];
   for (const variant of experiment.variants) {
     await opts.stopServer(variant.id);
+    // A killed server tree releases its file handles asynchronously on
+    // Windows; give it a beat before touching the directory.
+    await new Promise((resolve) => setTimeout(resolve, 350));
     if (fs.existsSync(variant.worktreePath)) {
       // --force is used ONLY when the user explicitly confirmed
       // discarding this variant's work (checked above or passed in).
@@ -203,13 +225,15 @@ export async function deleteExperiment(
         if (trees.some((t) => path.normalize(t.path) === path.normalize(variant.worktreePath))) {
           return { ok: false, blockedBy: [`${variant.label}: git worktree remove failed — ${res.stderr.trim()}`] };
         }
-        fs.rmSync(variant.worktreePath, { recursive: true, force: true });
+        if (!(await removeTree(variant.worktreePath))) {
+          leftovers.push(variant.worktreePath);
+        }
       }
     }
     await deleteBranch(experiment.repoPath, variant.branch).catch(() => undefined);
   }
   store.removeExperiment(experiment.id);
-  return { ok: true };
+  return { ok: true, ...(leftovers.length > 0 ? { leftovers } : {}) };
 }
 
 export function archiveExperiment(store: Store, experiment: ExperimentRecord): boolean {

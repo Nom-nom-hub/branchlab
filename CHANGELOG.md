@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.4 — 2026-10-11
+
+- **Delete no longer crashes on locked Windows files.** When Git had
+  deregistered a worktree but its folder remained (installed
+  node_modules), the filesystem fallback removed it with a bare
+  rmSync — no retries, no guard — so a file still held by the
+  just-stopped server or an open variant window threw EPERM straight
+  through the command as a VS Code "system error". Removal now goes
+  through a retrying remover (backoff while handles release, plus a
+  settle beat after each server stop); if a folder still cannot be
+  deleted, the delete completes and the folder is named in a plain
+  warning instead. The delete command also catches its own failures —
+  raw OS errors never surface as system errors again. The same
+  hardening covers partial-create cleanup.
+
+
 ## 0.1.3 — 2026-10-11
 
 - **Preview transport fix.** The comparison panel now routes its

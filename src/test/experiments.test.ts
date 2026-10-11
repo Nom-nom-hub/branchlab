@@ -3,7 +3,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { Store } from '../store.js';
-import { createExperiment, reconcile, deleteExperiment } from '../experiments.js';
+import { createExperiment, reconcile, deleteExperiment, removeTree } from '../experiments.js';
 import { makeRepo, writeFile, headSha, type FixtureRepo } from './repoHelper.js';
 
 let fixture: FixtureRepo | null = null;
@@ -91,5 +91,16 @@ describe('experiment lifecycle', () => {
     expect(fs.existsSync(experiment.variants[0]!.worktreePath)).toBe(false);
     // The original repo is untouched.
     expect(fs.existsSync(path.join(fixture!.dir, 'src/app.ts'))).toBe(true);
+  });
+});
+
+describe('removeTree', () => {
+  it('removes a populated tree and reports success; a missing path is success too', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'branchlab-rm-'));
+    fs.mkdirSync(path.join(dir, 'node_modules/pkg'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'node_modules/pkg/index.js'), 'x');
+    await expect(removeTree(dir)).resolves.toBe(true);
+    expect(fs.existsSync(dir)).toBe(false);
+    await expect(removeTree(dir)).resolves.toBe(true);
   });
 });
