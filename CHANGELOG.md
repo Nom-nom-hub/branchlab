@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 — 2026-10-11
+
+- tsconfig now declares `"types": ["node"]` explicitly, so a fresh
+  clone's TypeScript server resolves Node typings deterministically
+  after `npm install` (without node_modules, `node:fs` imports and
+  timers error exactly as a first-open suggests).
+
+
 ## 0.1.0 — 2026-10-11
 
 First build, implementing the V1 PRD (docs/PRD.md) end to end:

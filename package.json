@@ -155,7 +155,7 @@
     "test": "vitest run",
     "watch": "tsc -watch -p ./"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "icon": "media/icon.png",
   "repository": {
     "type": "git",
