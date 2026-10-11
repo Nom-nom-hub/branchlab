@@ -1,0 +1,39 @@
+# Changelog
+
+## 0.1.0 — 2026-10-11
+
+First build, implementing the V1 PRD (docs/PRD.md) end to end:
+
+- **Preflight + creation (FR-01)** — trust, clean committed baseline,
+  branch/detached/merge/submodule/sparse guards, unsaved-buffer check,
+  one active experiment per repo; creation journaled before mutation
+  with journal-scoped partial cleanup
+- **Worktree isolation (FR-02)** — two or three worktrees at one pinned
+  SHA under `branchlab/<experiment>/<variant>` branches, stored outside
+  the source tree; debounced change detection
+- **Setup + execution (FR-03)** — lockfile-based package-manager
+  detection, explicit Vite/Next adapters (real port/host flags, strict
+  binding), lockfile-enforced installs on click only, opt-in env-file
+  copies (paths recorded, contents never), allocated loopback ports
+  with bounded rebind retries, owned process trees, bounded HTTP
+  readiness with a Reachable · App error state
+- **Comparison panel (FR-04)** — Activity Bar tree + card webview:
+  setup/server/test chips, changed-file counts, shared route + viewport
+  presets, sandboxed previews with a permanent Open in Browser fallback
+- **Diff + tests (FR-05)** — full baseline→working-tree change sets in
+  VS Code's diff editor against Git-object baselines; per-variant test
+  runs stamped with content fingerprints that go Stale on any edit
+- **Apply winner (FR-06)** — frozen, reviewed transfer artifact (binary
+  patch + explicit untracked copies), env exclusions reported,
+  branch/baseline/clean guards rechecked at mutation time, winner-
+  movement abort, verification of every applied path; result is always
+  uncommitted changes
+- **Recovery (FR-07)** — atomic session store, startup reconciliation
+  against `git worktree list`, servers never auto-restart, deletion
+  blocked by un-preserved variant work until explicit discard
+
+22 automated tests: unit (lifecycle, message schema, path guards,
+ports), real-Git integration (preflight, worktrees, transfer round
+trip), process supervision against live fixture servers, and a host
+activation smoke test. See docs/QA.md for the AC-by-AC evidence map —
+Windows/macOS host checks remain before a public release.

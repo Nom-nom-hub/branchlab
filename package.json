@@ -1,0 +1,168 @@
+{
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "categories": [
+    "Other",
+    "Testing"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "branchlab.newExperiment",
+        "icon": "$(add)",
+        "title": "BranchLab: New Experiment"
+      },
+      {
+        "command": "branchlab.openPanel",
+        "icon": "$(window)",
+        "title": "BranchLab: Open Comparison Panel"
+      },
+      {
+        "command": "branchlab.refresh",
+        "icon": "$(refresh)",
+        "title": "BranchLab: Refresh"
+      },
+      {
+        "command": "branchlab.openVariant",
+        "icon": "$(folder-opened)",
+        "title": "Open Variant in New Window"
+      },
+      {
+        "command": "branchlab.archiveExperiment",
+        "icon": "$(archive)",
+        "title": "Archive Experiment"
+      },
+      {
+        "command": "branchlab.deleteExperiment",
+        "icon": "$(trash)",
+        "title": "Delete Experiment\u2026"
+      }
+    ],
+    "configuration": {
+      "properties": {
+        "branchlab.portRangeEnd": {
+          "default": 4399,
+          "description": "Last loopback port BranchLab may allocate to a variant's dev server.",
+          "maximum": 65535,
+          "minimum": 1025,
+          "type": "number"
+        },
+        "branchlab.portRangeStart": {
+          "default": 4300,
+          "description": "First loopback port BranchLab may allocate to a variant's dev server.",
+          "maximum": 65000,
+          "minimum": 1024,
+          "type": "number"
+        }
+      },
+      "title": "BranchLab"
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "branchlab.openPanel",
+          "group": "inline",
+          "when": "view == branchlab.experiments && viewItem == experiment"
+        },
+        {
+          "command": "branchlab.archiveExperiment",
+          "group": "lifecycle",
+          "when": "view == branchlab.experiments && viewItem == experiment"
+        },
+        {
+          "command": "branchlab.deleteExperiment",
+          "group": "lifecycle",
+          "when": "view == branchlab.experiments && viewItem == experiment"
+        },
+        {
+          "command": "branchlab.openVariant",
+          "group": "inline",
+          "when": "view == branchlab.experiments && viewItem == variant"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "branchlab.newExperiment",
+          "group": "navigation",
+          "when": "view == branchlab.experiments"
+        },
+        {
+          "command": "branchlab.refresh",
+          "group": "navigation",
+          "when": "view == branchlab.experiments"
+        }
+      ]
+    },
+    "views": {
+      "branchlab": [
+        {
+          "contextualTitle": "BranchLab Experiments",
+          "icon": "media/icon.svg",
+          "id": "branchlab.experiments",
+          "name": "Experiments"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "icon": "media/icon.svg",
+          "id": "branchlab",
+          "title": "BranchLab"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "contents": "No experiments yet.\nCreate two or three isolated variants of your current commit, run them side by side, and keep the best one.\n[New Experiment](command:branchlab.newExperiment)",
+        "view": "branchlab.experiments"
+      }
+    ]
+  },
+  "description": "Try alternative implementations side by side: isolated Git worktrees, running previews, diffs and tests per variant, and a guarded one-click transfer of the winner into your workspace.",
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.2.0",
+    "eslint": "^9.17.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.19.0",
+    "vitest": "^2.1.0"
+  },
+  "displayName": "BranchLab",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "keywords": [
+    "git",
+    "worktree",
+    "experiments",
+    "branches",
+    "comparison",
+    "a/b",
+    "prototyping"
+  ],
+  "license": "MIT",
+  "main": "./out/extension.js",
+  "name": "branchlab",
+  "publisher": "nom-nom-hub",
+  "scripts": {
+    "compile": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\" && tsc -p ./",
+    "lint": "eslint src",
+    "package": "vsce package",
+    "test": "vitest run",
+    "watch": "tsc -watch -p ./"
+  },
+  "version": "0.1.0",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nom-nom-hub/branchlab"
+  },
+  "homepage": "https://github.com/Nom-nom-hub/branchlab#readme",
+  "bugs": {
+    "url": "https://github.com/Nom-nom-hub/branchlab/issues"
+  }
+}

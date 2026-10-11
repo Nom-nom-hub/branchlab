@@ -1,0 +1,9 @@
+out/test/**
+src/**
+**/*.ts
+**/*.map
+.gitignore
+tsconfig.json
+vitest.config.*
+eslint.config.*
+docs/**
